@@ -3,9 +3,8 @@ set -euo pipefail
 
 # === CONFIG ===
 # Note: Deacon's API is not ready to be public facing, this will only work locally/with Mattc.org VPN on, hence the lack of authentication.
-# Also note: Deacon already handles ram notifications internally, this is more of a proof of concept for custom notifications via the rest API
 # Defaults (can be overridden by flags)
-API_BASE="http://192.168.200.72:556/Deacon/Alert"
+API_BASE="http://192.168.1._:556/Deacon/Alert"
 THRESHOLD=""
 FREQ_MIN=""
 LOG_FILE="$HOME/ramwatch.log"
@@ -83,7 +82,7 @@ get_ram_used_pct() {
 
 # Regex-based encoder for rubric points. Ideally this could be done by a dependency like jq
 urlencode_regex() {
-  # NOTE: This is intentionally minimal for the rubric; not for untrusted input/edge cases.
+  # Regex needs upgraded for untrusted input/edge cases.
   sed -E 's/%/%25/g; s/ /%20/g; s/!/%21/g; s/\(/%28/g; s/\)/%29/g; s/:/%3A/g; s/\+/%2B/g; s/\?/%3F/g; s/&/%26/g'
 }
 
@@ -112,7 +111,7 @@ while true; do
     url="${API_BASE}?Title=RamExceeded&Body=${enc_body}"
 
     log "Threshold exceeded — ${pct}% used (threshold=${THRESHOLD}%)"
-    # Make the call; non-fatal if it fails, but log it.
+    # Make the call, log if fail
     if ! curl -sS --http1.1 "$url" >/dev/null; then
       log "API call failed"
     fi
